@@ -3446,6 +3446,7 @@ class CallSchema(TypedDict, total=False):
     function: Required[Callable[..., Any]]
     function_name: str  # default function.__name__
     return_schema: CoreSchema
+    check_args_only: bool  # default: False
     ref: str
     metadata: Dict[str, Any]
     serialization: SerSchema
@@ -3457,6 +3458,7 @@ def call_schema(
     *,
     function_name: str | None = None,
     return_schema: CoreSchema | None = None,
+    check_args_only: bool | None = None,
     ref: str | None = None,
     metadata: Dict[str, Any] | None = None,
     serialization: SerSchema | None = None,
@@ -3489,6 +3491,7 @@ def call_schema(
         function: The function to use for the call schema
         function_name: The function name to use for the call schema, if not provided `function.__name__` is used
         return_schema: The return schema to use for the call schema
+        check_args_only: Whether to only check the arguments, not call the function
         ref: optional unique identifier of the schema, used to reference the schema in other places
         metadata: Any other information you want to include with the schema, not used by pydantic-core
         serialization: Custom serialization schema
@@ -3499,6 +3502,7 @@ def call_schema(
         function=function,
         function_name=function_name,
         return_schema=return_schema,
+        check_args_only=check_args_only,
         ref=ref,
         metadata=metadata,
         serialization=serialization,

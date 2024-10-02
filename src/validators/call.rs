@@ -18,6 +18,7 @@ pub struct CallValidator {
     arguments_validator: Box<CombinedValidator>,
     return_validator: Option<Box<CombinedValidator>>,
     name: String,
+    check_args_only: bool,
 }
 
 impl BuildValidator for CallValidator {
@@ -57,12 +58,14 @@ impl BuildValidator for CallValidator {
         };
         let function_name = function_name.bind(py);
         let name = format!("{}[{function_name}]", Self::EXPECTED_TYPE);
+        let check_args_only = schema.get_as(intern!(py, "check_args_only"))?.unwrap_or(false);
 
         Ok(Self {
             function: function.to_object(py),
             arguments_validator,
             return_validator,
             name,
+            check_args_only,
         }
         .into())
     }
@@ -82,6 +85,9 @@ impl Validator for CallValidator {
         state: &mut ValidationState<'_, 'py>,
     ) -> ValResult<PyObject> {
         let args = self.arguments_validator.validate(py, input, state)?.into_bound(py);
+        if self.check_args_only {
+            return Ok(args.to_object(py));
+        }
 
         let return_value = if let Ok((args, kwargs)) = args.extract::<(Bound<PyTuple>, Bound<PyDict>)>() {
             self.function.call_bound(py, args, Some(&kwargs))?
