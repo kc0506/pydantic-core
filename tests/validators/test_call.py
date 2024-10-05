@@ -221,3 +221,25 @@ def test_custom_name():
     assert 'name:"call[foobar]"' in plain_repr(v)
     assert v.validate_python((1,)) == 1
     assert v.validate_python(('2',)) == 2
+
+
+def test_check_args_only():
+    def func(*args, **kwargs):
+        raise Exception()
+
+    v = SchemaValidator(
+        {
+            'type': 'call',
+            'function': func,
+            'arguments_schema': {
+                'type': 'arguments',
+                'arguments_schema': [
+                    {'name': 'x', 'schema': {'type': 'int'}},
+                    {'name': 'y', 'schema': {'type': 'int'}},
+                    {'name': 'z', 'schema': {'type': 'int'}},
+                ],
+            },
+            'check_args_only': True,
+        }
+    )
+    assert v.validate_python(ArgsKwargs(('1', '2'), {'z': '3'})) == ((1, 2), {'z': 3})
